@@ -1,13 +1,16 @@
-import itertools
-
+import csv
+import random
+    
 class Employee():
-    newid = itertools.count()
+    
     def __init__ (self, first_name, last_name, position):
-        self._id = str(next(Employee.newid))
+        newid = random.randint(99999, 999999)
+        self._id = (str(newid))
         self._first_name = self._valid_first_name(first_name)
         self._last_name = self._valid_last_name(last_name)
         self._position = self._valid_postion(position)
-     
+    
+
     def _valid_first_name(self, first_name):
         if isinstance(first_name, str):
             if len(first_name) > 0:
@@ -64,66 +67,103 @@ class Employee():
     
     def get_id(self):
         return self._id
-    
-    def details(self):
-        return f"{self._id} | {self._first_name} | {self._last_name} | {self._position}"
-    
+        
     def __str__(self):
-        return f'\nId: {self._id} \nFirst name: {self._first_name} \nLast name: {self._last_name} \nPosition: {self._position}'
+        return f"{self._id},{self._first_name},{self._last_name},{self._position}"
 
 class Manager(Employee):
     def __init__(self, first_name, last_name, position):
         super().__init__(first_name, last_name, position)
     
     def __str__(self):
-        return super(Manager, self).__str__()
+        return f"{self._id},{self._first_name},{self._last_name},{self._position}"
 
 def enter_employee():
     first_name = str(input("Enter first name: "))
     last_name = str(input("Enter last name: "))
     position = str(input("Enter position: "))
-    return Manager(first_name, last_name, position)
+    m = Manager(first_name, last_name, position)
+    return f"[{m}]"
 
 def write_employees(employees):
-    with open(r'C:\Users\TheKi\Desktop\projekt\plik.txt', 'w') as file:
+    with open('plik.csv', 'w', newline="") as file:
+        writer = csv.writer(file)
         for employee in employees:
-            file.write(f"{str(employee)}\n")
+            writer.writerow([str(employee).replace('[', '').replace(']','')])
 
 def check_employee(employees):
-    found = False
-    id = input("Enter Employee's ID: ")
-    for employee in employees:
-        if id in employee.get_id():
-            print(employee)
-            print()
-            found = True
-    if not found:
-        print("There is no employee with this id")
+    id = input("Enter ID: ")
+    for x in employees:
+        for y in x.split(','):
+            if id in y:
+                print(x)
+                print()
+            else:
+                print("There is no employee with this ID!")
 
 def show_employees(employees):
     for employee in employees:
-        print(employee)
+        print(f"{employee}")
     print()
 
-def clean_file():
-    with open(r'C:\Users\TheKi\Desktop\projekt\plik.txt', 'w'):
-        pass
+def read_file(emp):
+    with open('plik.csv', 'rt') as file:
+        csv_reader = csv.reader(file)
+        for line in csv_reader:
+            emp.append(str(line).replace("'", ""))
 
-def delete_employee(employee):
-    id = input("Enter id: ")
-    for i in employee:
-        if id in i._id:
-            employee.remove(i)
-            break     
+
+def edit_employee(emp):
+    id = str(input("Enter ID of Employee: "))
+    element = str(input("Enter an element that you want to change(type: firstname, lastname, position): "))
+    if element == 'firstname':
+        i = 1
+    elif element == 'lastname':
+        i = 2
+    elif element == 'position':
+        i = 3
+    else:
+        print("Wrong input!!!")
+    value = input("Write a change: ")
+    r = csv.reader(open('plik.csv', 'r')) # Here your csv file
+    lines = list(r)
+    for x in lines:
+        for y in x:
+            if id in y:
+                idx = x.index(y)
+                result = y.split(',')
+    result[i] = value
+    result = [','.join(result)]
+    lines[idx] = result
+
+    writer = csv.writer(open('plik.csv', 'w', newline=""))
+    writer.writerows(lines)
+        
+
+def clean_file():
+    with open('plik.csv', 'w') as file:
+        file.truncate()
+
+def delete_employee(employees):
+    id = str(input("Enter employee's id to be deleted: "))
+    for employee in employees:
+        if id in employee:
+            employees.remove(employee)
+        else:
+            print("Employee does not exist")
+
     
 def menu():
+    print("Please remember to save the file!!")
     print("1) New Employee")
     print("2) Check Employee")
     print("3) Show all Employees")
-    print("4) Delete Employee")
-    print("5) Save to txt file")
-    print("6) Clean file")
-    print("7) Exit.")
+    print("4) Edit employee")
+    print("5) Delete Employee")
+    print("6) Read CSV file")
+    print("7) Save to CSV file")
+    print("8) Clean file")
+    print("9) Exit.")
 
 def main():
     option = 0
@@ -139,15 +179,18 @@ def main():
         elif option == '3':
             show_employees(employees)
         elif option == '4':
-            delete_employee(employees)
+            edit_employee(employees)
         elif option == '5':
-            write_employees(employees)
+            delete_employee(employees)
         elif option == '6':
-            clean_file()
+            read_file(employees)
         elif option == '7':
+            write_employees(employees)
+        elif option == '8':
+            clean_file()
+        elif option == '9':
             run = False
         else:
             print('xd')
 
 main()
-
